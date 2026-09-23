@@ -48,7 +48,6 @@ public class Client {
                 Thread.sleep(delay * 1000L);
             }
 
-            //читать целые числа и массивы
             DataInputStream din = new DataInputStream(in);
 
             int certificate = din.readInt();

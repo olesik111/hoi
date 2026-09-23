@@ -9,9 +9,13 @@ import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.security.KeyFactory;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.PrivateKey;
+import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.Queue;
@@ -41,24 +45,27 @@ public class Server {
         }
     }
 
-
     public static void main(String[] args) throws Exception {
-        if (args.length < 3) {
-            System.out.println("Usage: java KeyGenServer <port> <threads> <issuer_name>");
+        if (args.length < 4) {
+            System.out.println("Usage: java KeyGenServer <port> <threads> <issuer_name> <ca_key_file>");
             return;
         }
 
         int port = Integer.parseInt(args[0]);
         int threads = Integer.parseInt(args[1]);
         issuerName = args[2];
+        String caKeyPath = args[3];
 
-        caPrivateKey = KeyPairGenerator.getInstance("RSA").generateKeyPair().getPrivate();
+        byte[] keyBytes = Files.readAllBytes(Paths.get(caKeyPath));
+        PKCS8EncodedKeySpec spec = new PKCS8EncodedKeySpec(keyBytes);
+        KeyFactory kf = KeyFactory.getInstance("RSA");
+        caPrivateKey = kf.generatePrivate(spec);
 
         workerPool = Executors.newFixedThreadPool(threads);
 
         Selector selector = Selector.open();
         ServerSocketChannel serverChannel = ServerSocketChannel.open();
-        serverChannel.bind(new InetSocketAddress(port));
+        serverChannel.bind(new InetSocketAddress(port), 150);
         serverChannel.configureBlocking(false);
         serverChannel.register(selector, SelectionKey.OP_ACCEPT);
 
@@ -89,7 +96,7 @@ public class Server {
 
             WriteTask task;
             while ((task = writeQueue.poll()) != null) {
-                SelectionKey key = task.channel.keyFor(selector);//событие связанное с клиентом
+                SelectionKey key = task.channel.keyFor(selector);
                 if (key != null && key.isValid()) {
                     key.attach(ByteBuffer.wrap(task.data));
                     key.interestOps(SelectionKey.OP_WRITE);
@@ -109,7 +116,7 @@ public class Server {
         }
 
         buffer.flip();
-        byte[] bytes = new byte[buffer.remaining()]; // массив размером с то что мы прочитали
+        byte[] bytes = new byte[buffer.remaining()];
         buffer.get(bytes);
 
         for (int i = 0; i < bytes.length; i++) {
@@ -143,7 +150,7 @@ public class Server {
     private static byte[] generatePayload(String subjectName) {
         try {
             KeyPairGenerator kpg = KeyPairGenerator.getInstance("RSA");
-            kpg.initialize(8192);
+            kpg.initialize(2048);
             KeyPair keyPair = kpg.generateKeyPair();
 
             X500Name issuer = new X500Name("CN=" + issuerName);
