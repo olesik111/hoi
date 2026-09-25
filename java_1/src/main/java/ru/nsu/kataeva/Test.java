@@ -6,7 +6,7 @@ import java.util.List;
 
 public class Test {
     public static void main(String[] args) throws Exception {
-        int clients = 10;
+        int clients = 6;
         List<Process> processes = new ArrayList<>();
 
         String java = System.getProperty("java.home")
@@ -29,7 +29,7 @@ public class Test {
             command.add("localhost");
             command.add("8081");
 
-            if (i % 10 == 0) {
+            if (i % 6 == 0) {
                 command.add("--exit");
             } else if (i % 5 == 0) {
                 command.add("--delay");
