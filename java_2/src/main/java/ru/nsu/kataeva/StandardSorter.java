@@ -19,31 +19,37 @@ public class StandardSorter extends Thread {
         while (true) {
             int size = list.size();
             for (int i = 0; i < size - 1; i++) {
-                try { Thread.sleep(delayMs); } catch (InterruptedException ignored) {}
-
-                boolean swapped = false;
-                String a = null;
-                String b = null;
-
                 try {
-                    a = list.get(i);
-                    b = list.get(i + 1);
-                } catch (IndexOutOfBoundsException e) {
-                    break;
+                    Thread.sleep(delayMs);
+                } catch (InterruptedException e) {
+                    return;
                 }
+                synchronized (list) {
+                    String a = list.get(i);
+                    String b = list.get(i + 1);
 
-                if (a != null && b != null && a.compareTo(b) > 0) {
-                    list.set(i, b);
-                    list.set(i + 1, a);
-                    swapped = true;
+                    if (a.compareTo(b) > 0) {
+                        list.set(i, b);
+                        list.set(i + 1, a);
+                    }
                 }
 
                 stepCounter.incrementAndGet();
 
-                try { Thread.sleep(delayMs); } catch (InterruptedException ignored) {}
+                try {
+                    Thread.sleep(delayMs);
+                } catch (InterruptedException e) {
+                    return;
+                }
             }
-            if (size < 2) {
-                try { Thread.sleep(delayMs); } catch (InterruptedException ignored) {}
+
+
+            if (list.size() < 2) {
+                try {
+                    Thread.sleep(delayMs);
+                } catch (InterruptedException e) {
+                    return;
+                }
             }
         }
     }

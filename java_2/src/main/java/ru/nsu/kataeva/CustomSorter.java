@@ -21,7 +21,10 @@ public class CustomSorter extends Thread {
 
             if (curr == null) {
                 prev.lock.unlock();
-                try { Thread.sleep(delayMs); } catch (InterruptedException ignored) {}
+                try {
+                    Thread.sleep(delayMs);
+                } catch (InterruptedException ignored) {
+                }
                 continue;
             }
 
@@ -31,7 +34,11 @@ public class CustomSorter extends Thread {
                 Node nextNode = curr.next;
                 nextNode.lock.lock();
 
-                try { Thread.sleep(delayMs); } catch (InterruptedException ignored) {}
+                try {
+                    Thread.sleep(delayMs);
+                } catch (InterruptedException ignored) {
+
+                }
 
                 boolean swapped = false;
                 if (curr.data.compareTo(nextNode.data) > 0) {
@@ -43,7 +50,11 @@ public class CustomSorter extends Thread {
 
                 stepCounter.incrementAndGet();
 
-                try { Thread.sleep(delayMs); } catch (InterruptedException ignored) {}
+                try {
+                    Thread.sleep(delayMs);
+                } catch (InterruptedException ignored) {
+
+                }
 
                 if (swapped) {
                     Node oldPrev = prev;
